@@ -1,0 +1,32 @@
+version: v1.0
+name: Terraform
+agent:
+  machine:
+    type: f1-standard-2
+    os_image: ubuntu2204
+
+auto_cancel:
+  running:
+    when: branch != 'main'
+  queued:
+    when: branch != 'main'
+
+blocks:
+  - name: Format and validate
+    task:
+      prologue:
+        commands:
+          - checkout
+          - curl -fsSLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.16.4/terraform_1.16.4_linux_amd64.zip
+          - "printf '%s  /tmp/terraform.zip\\n' 'dc94af0eef1147718ad7c8daea792ed199e3e0492eec180d0adafa2a65a879df' | sha256sum -c -"
+          - unzip -q /tmp/terraform.zip terraform -d /tmp
+      jobs:
+        - name: Check Terraform
+          commands:
+            - /tmp/terraform fmt -check -recursive -diff .
+            - /tmp/terraform -chdir=aws init -backend=false -input=false -lockfile=readonly -no-color
+            - /tmp/terraform -chdir=aws validate -no-color
+            - /tmp/terraform -chdir=gcp init -backend=false -input=false -lockfile=readonly -no-color
+            - /tmp/terraform -chdir=gcp validate -no-color
+            - /tmp/terraform -chdir=azure init -backend=false -input=false -lockfile=readonly -no-color
+            - /tmp/terraform -chdir=azure validate -no-color
