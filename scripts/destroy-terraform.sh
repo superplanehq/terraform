@@ -5,7 +5,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/terraform-auth.sh"
 
 cloud=${1:?cloud is required}
 case "$cloud" in aws|gcp) ;; *) echo "Unsupported cloud: $cloud" >&2; exit 2 ;; esac
-state_artifact="terraform-install-tests/$cloud.tfstate"
+state_artifact="$cloud.tfstate"
 
 setup_cloud() {
   case "$cloud" in
@@ -41,8 +41,7 @@ setup_cloud() {
 
 save_state() {
   if [[ -s terraform.tfstate ]]; then
-    mkdir -p terraform-install-tests
-    cp terraform.tfstate "terraform-install-tests/$cloud.tfstate"
+    cp terraform.tfstate "$state_artifact"
     artifact push project "$state_artifact" --force
   fi
 }
@@ -103,4 +102,4 @@ fi
 /tmp/terraform destroy -auto-approve -input=false -no-color
 # Keep the project artifact until the destroy has completed successfully.
 trap - EXIT
-artifact yank project "$state_artifact" --destination /tmp/"$cloud"-destroyed.tfstate >/dev/null
+artifact yank project "$state_artifact" >/dev/null

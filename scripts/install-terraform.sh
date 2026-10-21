@@ -5,7 +5,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/terraform-auth.sh"
 
 cloud=${1:?cloud is required}
 case "$cloud" in aws|gcp) ;; *) echo "Unsupported cloud: $cloud" >&2; exit 2 ;; esac
-state_artifact="terraform-install-tests/$cloud.tfstate"
+state_artifact="$cloud.tfstate"
 
 setup_cloud() {
   case "$cloud" in
@@ -46,8 +46,7 @@ setup_cloud() {
 
 save_state() {
   if [[ -s terraform.tfstate ]]; then
-    mkdir -p terraform-install-tests
-    cp terraform.tfstate "terraform-install-tests/$cloud.tfstate"
+    cp terraform.tfstate "$state_artifact"
     artifact push project "$state_artifact" --force
   fi
 }
