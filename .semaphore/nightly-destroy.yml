@@ -1,0 +1,19 @@
+version: v1.0
+name: Ephemeral Environments - Scheduled Destroy
+agent:
+  machine:
+    type: f1-standard-2
+    os_image: ubuntu2204
+blocks:
+  - name: Start cleanup
+    task:
+      jobs:
+        - name: Start cleanup
+          commands:
+            - echo "Starting scheduled Terraform cleanup"
+promotions:
+  - name: Ephemeral Environments - Destroy
+    pipeline_file: destroy.yml
+    deployment_target: ephemeral-environments
+    auto_promote:
+      when: "result = 'passed' AND branch = 'main'"

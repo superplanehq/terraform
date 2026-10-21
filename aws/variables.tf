@@ -104,6 +104,18 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "rds_skip_final_snapshot" {
+  description = "Skip the final RDS snapshot when destroying a disposable installation."
+  type        = bool
+  default     = false
+}
+
+variable "blob_bucket_force_destroy" {
+  description = "Delete all S3 blob objects when destroying a disposable installation."
+  type        = bool
+  default     = false
+}
+
 variable "rds_deletion_protection" {
   description = "Enable deletion protection on the RDS instance. Set this to false and apply before destroy."
   type        = bool

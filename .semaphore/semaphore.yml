@@ -30,3 +30,11 @@ blocks:
             - /tmp/terraform -chdir=gcp validate -no-color
             - /tmp/terraform -chdir=azure init -backend=false -input=false -lockfile=readonly -no-color
             - /tmp/terraform -chdir=azure validate -no-color
+
+promotions:
+  - name: Ephemeral Environments - Start
+    pipeline_file: install.yml
+    deployment_target: ephemeral-environments
+  - name: Ephemeral Environments - Destroy
+    pipeline_file: destroy.yml
+    deployment_target: ephemeral-environments

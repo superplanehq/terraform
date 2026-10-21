@@ -32,8 +32,8 @@ these settings keeps local blob files.
 - [Terraform](https://developer.hashicorp.com/terraform/install) 1.5.0 or later.
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) and `kubectl`.
 - A GCP project with billing enabled.
-- An account with the Owner role on the project, or with permission to create
-  GKE, Cloud SQL, Compute Engine, GCS, and IAM resources.
+- GCP credentials with the
+  [installer roles](../docs/gcp-installer-roles.txt).
 - A DNS zone where you can create an A record.
 - For runners: [Packer](https://developer.hashicorp.com/packer/install) 1.16.1
   or later, `curl`, and `jq`.

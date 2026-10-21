@@ -1,6 +1,7 @@
 # Shared blob storage for the API, workers, and runner pods.
 resource "aws_s3_bucket" "blobs" {
   bucket_prefix = "${var.cluster_name}-blobs-"
+  force_destroy = var.blob_bucket_force_destroy
 }
 
 resource "aws_s3_bucket_public_access_block" "blobs" {

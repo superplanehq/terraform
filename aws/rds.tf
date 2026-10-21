@@ -136,8 +136,8 @@ resource "aws_db_instance" "superplane" {
   maintenance_window      = "Mon:04:00-Mon:05:00"
 
   deletion_protection       = var.rds_deletion_protection
-  skip_final_snapshot       = false
-  final_snapshot_identifier = "${var.db_instance_identifier}-final-${random_id.rds_final_snapshot.hex}"
+  skip_final_snapshot       = var.rds_skip_final_snapshot
+  final_snapshot_identifier = var.rds_skip_final_snapshot ? null : "${var.db_instance_identifier}-final-${random_id.rds_final_snapshot.hex}"
 
   tags = {
     Name = var.db_instance_identifier

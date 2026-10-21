@@ -1,0 +1,9 @@
+roles/compute.admin
+roles/container.admin
+roles/cloudsql.admin
+roles/storage.admin
+roles/iam.serviceAccountAdmin
+roles/iam.serviceAccountUser
+roles/resourcemanager.projectIamAdmin
+roles/serviceusage.serviceUsageAdmin
+roles/servicenetworking.networksAdmin

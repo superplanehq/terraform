@@ -7,7 +7,10 @@ Deploy SuperPlane to EKS with RDS PostgreSQL.
 - [Terraform](https://www.terraform.io/downloads) >= 1.5.0
 - [AWS CLI](https://aws.amazon.com/cli/) installed and configured
 - kubectl installed
-- AWS account with permissions to create EKS, EFS, RDS, S3, and VPC resources
+- AWS account credentials with the actions in the
+  [installer IAM policy](../docs/aws-installer-iam.json). The policy targets
+  `us-east-1` and the default `superplane` cluster name; adjust its scopes
+  when you change these settings.
 - A domain that you can configure in DNS
 
 ## Deploy
