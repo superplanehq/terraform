@@ -197,11 +197,24 @@ resource "aws_iam_role_policy" "vpc_flow_logs" {
   })
 }
 
+# AWS can send a final flow-log batch after DeleteFlowLogs returns.
+# Wait before deleting the log group so the service cannot recreate it.
+resource "time_sleep" "wait_for_flow_log_shutdown" {
+  depends_on = [
+    aws_cloudwatch_log_group.vpc_flow_logs,
+    aws_iam_role_policy.vpc_flow_logs
+  ]
+
+  destroy_duration = "1m"
+}
+
 resource "aws_flow_log" "vpc" {
   iam_role_arn    = aws_iam_role.vpc_flow_logs.arn
   log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
   traffic_type    = "ALL"
   vpc_id          = aws_vpc.superplane.id
+
+  depends_on = [time_sleep.wait_for_flow_log_shutdown]
 
   tags = {
     Name = "${var.cluster_name}-vpc-flow-log"
