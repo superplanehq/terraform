@@ -206,10 +206,28 @@ variable "runner_image_arm64" {
 # Optional Variables - Network
 # -----------------------------------------------------------------------------
 
-variable "network" {
-  description = "VPC network to use"
+variable "network_name" {
+  description = "Name of the VPC created for this installation"
   type        = string
-  default     = "default"
+  default     = "superplane"
+}
+
+variable "gke_subnet_cidr" {
+  description = "Primary IP range for GKE nodes"
+  type        = string
+  default     = "10.20.0.0/20"
+}
+
+variable "gke_pods_cidr" {
+  description = "Secondary IP range for GKE Pods"
+  type        = string
+  default     = "10.24.0.0/16"
+}
+
+variable "gke_services_cidr" {
+  description = "Secondary IP range for GKE Services"
+  type        = string
+  default     = "10.25.0.0/20"
 }
 
 # -----------------------------------------------------------------------------

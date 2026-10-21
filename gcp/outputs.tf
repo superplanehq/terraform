@@ -1,3 +1,8 @@
+output "network_name" {
+  description = "Name of the VPC created for this installation"
+  value       = google_compute_network.superplane.name
+}
+
 # -----------------------------------------------------------------------------
 # GKE Cluster Outputs
 # -----------------------------------------------------------------------------

@@ -3,11 +3,11 @@
 # -----------------------------------------------------------------------------
 
 resource "google_compute_global_address" "private_ip_range" {
-  name          = "google-managed-services-${var.network}"
+  name          = "google-managed-services-${var.network_name}"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
   prefix_length = 16
-  network       = "projects/${var.project_id}/global/networks/${var.network}"
+  network       = google_compute_network.superplane.id
 
   depends_on = [
     google_project_service.servicenetworking
@@ -15,7 +15,7 @@ resource "google_compute_global_address" "private_ip_range" {
 }
 
 resource "google_service_networking_connection" "private_vpc_connection" {
-  network                 = "projects/${var.project_id}/global/networks/${var.network}"
+  network                 = google_compute_network.superplane.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_range.name]
 
@@ -51,7 +51,7 @@ resource "google_sql_database_instance" "superplane" {
 
     ip_configuration {
       ipv4_enabled    = false
-      private_network = "projects/${var.project_id}/global/networks/${var.network}"
+      private_network = google_compute_network.superplane.id
     }
 
     backup_configuration {

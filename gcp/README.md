@@ -18,7 +18,7 @@ Do the steps in this order:
 
 | Part | Resources | Variable |
 | --- | --- | --- |
-| SuperPlane | GKE cluster, Cloud NAT (private nodes), Cloud SQL, cert-manager, Helm release | Always |
+| SuperPlane | Dedicated VPC, GKE subnet, GKE cluster, Cloud NAT (private nodes), Cloud SQL, cert-manager, Helm release | Always |
 | Blob storage | GCS bucket, `superplane-app` service account, Workload Identity binding | `enable_gcs_blob_storage` |
 | Runner network | Runner subnetwork, deny-all ingress firewall rule, `superplane-fleet-mgr` service account | `enable_runners` |
 | Fleet Manager infrastructure | Service account, Workload Identity binding, and setup metadata | `enable_runners` |
@@ -160,8 +160,9 @@ The runner infrastructure includes:
   `https://superplane.example.com/runner/v1`.
 - Fleet Manager setup metadata, including the configured runner images.
 
-If `172.20.0.0/24` overlaps a range in your network, set `runner_subnet_cidr`
-before you apply.
+The VPC uses `superplane` by default. Its GKE node, Pod, Service, and runner
+ranges must not overlap. Set the network name and CIDR variables before you
+apply if the defaults conflict with another range connected to this VPC.
 
 ### Verify
 
@@ -218,12 +219,14 @@ network blocks inbound SSH, build after the apply. Use Identity-Aware Proxy
 and the runner subnetwork:
 
 ```bash
+INSTALL_NETWORK=$(terraform output -raw network_name)
 cd /path/to/superplane  # Separate SuperPlane source checkout
 packer build \
   -var project_id="$PROJECT_ID" \
   -var architecture=amd64 \
   -var machine_type=e2-standard-4 \
   -var use_iap=true \
+  -var network="$INSTALL_NETWORK" \
   -var subnetwork=superplane-runners \
   release/runner/packer/gce/runner.pkr.hcl
 cd /path/to/terraform/gcp
@@ -311,6 +314,10 @@ must stop and Fleet Manager must delete it after the task.
 | `blob_bucket_force_destroy` | `false` | Delete the bucket objects on destroy. |
 | `superplane_chart_path` | empty | Path to a local chart. Empty installs the published chart. |
 | `superplane_chart_version` | `1.0.0-rc3` | Published chart version. Use a stable `1.x` chart when one exists. Do not use chart `0.30.0` or any lower chart. |
+| `network_name` | `superplane` | Name of the VPC created for this installation. |
+| `gke_subnet_cidr` | `10.20.0.0/20` | Range for GKE nodes. |
+| `gke_pods_cidr` | `10.24.0.0/16` | Range for GKE Pods. |
+| `gke_services_cidr` | `10.25.0.0/20` | Range for GKE Services. |
 | `enable_runners` | `false` | Enable the runner API and create the runner network. Set this to `true` in `terraform.tfvars` for a new install. |
 | `runner_subnet_cidr` | `172.20.0.0/24` | Range of the runner subnetwork. |
 | `runner_zones` | `[zone]` | Zones for runner VMs. |

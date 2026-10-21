@@ -100,6 +100,11 @@
     },
     {
       "Effect": "Allow",
+      "Action": "iam:GetRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup"
+    },
+    {
+      "Effect": "Allow",
       "Action": [
         "iam:GetPolicy",
         "iam:GetPolicyVersion"
@@ -236,16 +241,10 @@
         "s3:DeleteBucket",
         "s3:ListBucket",
         "s3:GetBucket*",
-        "s3:GetBucketLocation",
-        "s3:GetBucketPolicy",
-        "s3:GetBucketPublicAccessBlock",
         "s3:PutBucketPublicAccessBlock",
         "s3:Get*Configuration",
-        "s3:GetEncryptionConfiguration",
         "s3:PutEncryptionConfiguration",
-        "s3:GetBucketCORS",
         "s3:PutBucketCORS",
-        "s3:GetBucketVersioning",
         "s3:ListBucketVersions"
       ],
       "Resource": "arn:aws:s3:::superplane-blobs-*"

@@ -13,7 +13,7 @@ resource "google_compute_subnetwork" "runners" {
   count                    = local.runners_enabled ? 1 : 0
   name                     = "${var.cluster_name}-runners"
   region                   = var.region
-  network                  = var.network
+  network                  = google_compute_network.superplane.id
   ip_cidr_range            = var.runner_subnet_cidr
   private_ip_google_access = true
 
@@ -31,7 +31,7 @@ resource "google_compute_router" "runners" {
   count   = local.runners_enabled && !var.enable_private_nodes ? 1 : 0
   name    = "${var.cluster_name}-runners-router"
   region  = var.region
-  network = var.network
+  network = google_compute_network.superplane.id
 }
 
 resource "google_compute_router_nat" "runners" {
@@ -53,12 +53,12 @@ resource "google_compute_router_nat" "runners" {
   }
 }
 
-# Runners only make outbound connections. This rule has priority over the
-# default network rules that allow SSH, RDP, ICMP, and internal traffic.
+# Runners only make outbound connections. This rule takes priority over
+# any future ingress rules for the installation VPC.
 resource "google_compute_firewall" "runners_deny_ingress" {
   count       = local.runners_enabled ? 1 : 0
   name        = "${var.cluster_name}-runners-deny-ingress"
-  network     = var.network
+  network     = google_compute_network.superplane.id
   direction   = "INGRESS"
   priority    = 900
   target_tags = [local.runner_network_tag]

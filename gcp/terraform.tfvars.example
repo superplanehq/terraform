@@ -105,4 +105,7 @@ superplane_chart_version = "1.0.0-rc3"
 # Optional Variables - Network
 # -----------------------------------------------------------------------------
 
-# network = "default"
+# network_name      = "superplane"
+# gke_subnet_cidr   = "10.20.0.0/20"
+# gke_pods_cidr     = "10.24.0.0/16"
+# gke_services_cidr = "10.25.0.0/20"

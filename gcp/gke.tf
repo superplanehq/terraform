@@ -16,7 +16,13 @@ resource "google_container_cluster" "superplane" {
     channel = "REGULAR"
   }
 
-  network = var.network
+  network    = google_compute_network.superplane.id
+  subnetwork = google_compute_subnetwork.gke.id
+
+  ip_allocation_policy {
+    cluster_secondary_range_name  = google_compute_subnetwork.gke.secondary_ip_range[0].range_name
+    services_secondary_range_name = google_compute_subnetwork.gke.secondary_ip_range[1].range_name
+  }
 
   # Enable Workload Identity
   workload_identity_config {
@@ -78,7 +84,7 @@ resource "google_compute_router" "nat_router" {
   count   = var.enable_private_nodes ? 1 : 0
   name    = "${var.cluster_name}-nat-router"
   region  = var.region
-  network = "projects/${var.project_id}/global/networks/${var.network}"
+  network = google_compute_network.superplane.id
 }
 
 # Cloud NAT (allows private nodes to pull container images)
