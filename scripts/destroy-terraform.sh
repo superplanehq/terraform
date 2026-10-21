@@ -61,41 +61,62 @@ fi
 trap save_state EXIT
 
 /tmp/terraform init -input=false -no-color
-# A failed apply may have saved state before the cluster existed.
+# A failed apply may save a cluster resource before Terraform creates outputs.
 if /tmp/terraform state list | grep -Eq '^(aws_eks_cluster|google_container_cluster)\.superplane$'; then
   cluster=$(/tmp/terraform output -raw cluster_name)
   namespace=$(/tmp/terraform output -raw superplane_namespace)
-  case "$cloud" in
-    aws)
-      aws eks update-kubeconfig --name "$cluster" --region "$TF_VAR_region" >/dev/null
-      ;;
-    gcp)
-      gcloud container clusters get-credentials "$cluster" --zone "$TF_VAR_zone" --project "$GCP_PROJECT_ID" --quiet >/dev/null
-      ;;
-  esac
-
-  if helm status fleet-manager --namespace "$namespace" >/dev/null 2>&1; then
-    manager_id=$(helm get values fleet-manager --namespace "$namespace" --all --output json | jq -er '.manager.id')
-    helm uninstall fleet-manager --namespace "$namespace" --wait
+  if [[ -z "$cluster" || -z "$namespace" ]]; then
+    echo "Cluster outputs are unavailable; skipping Fleet Manager cleanup."
+  else
+    cluster_available=true
     case "$cloud" in
       aws)
-        profile=$(/tmp/terraform output -raw runner_instance_profile_name)
-        profile_arn=$(aws iam get-instance-profile --instance-profile-name "$profile" --query 'InstanceProfile.Arn' --output text)
-        ids=$(aws ec2 describe-instances --filters "Name=tag:superplane_fleet_manager_id,Values=$manager_id" "Name=iam-instance-profile.arn,Values=$profile_arn" 'Name=instance-state-name,Values=pending,running,stopping,stopped' --query 'Reservations[].Instances[].InstanceId' --output text)
-        if [[ -n "$ids" ]]; then
-          read -r -a instance_ids <<< "$ids"
-          aws ec2 terminate-instances --instance-ids "${instance_ids[@]}" >/dev/null
-          aws ec2 wait instance-terminated --instance-ids "${instance_ids[@]}"
+        if ! cluster_error=$(aws eks describe-cluster --name "$cluster" --region "$TF_VAR_region" 2>&1); then
+          case "$cluster_error" in
+            *ResourceNotFoundException*|*"Cluster not found"*) cluster_available=false ;;
+            *) echo "$cluster_error" >&2; exit 1 ;;
+          esac
+        fi
+        if [[ "$cluster_available" == true ]]; then
+          aws eks update-kubeconfig --name "$cluster" --region "$TF_VAR_region" >/dev/null
         fi
         ;;
       gcp)
-        instances=$(gcloud compute instances list --project "$GCP_PROJECT_ID" --filter="labels.superplane_fleet_manager_id=$manager_id" --format='value(name,zone.basename())')
-        while read -r name zone; do
-          [[ -n "$name" ]] || continue
-          gcloud compute instances delete "$name" --zone="$zone" --project "$GCP_PROJECT_ID" --quiet
-        done <<< "$instances"
+        if ! cluster_error=$(gcloud container clusters describe "$cluster" --zone "$TF_VAR_zone" --project "$GCP_PROJECT_ID" --quiet 2>&1); then
+          case "$cluster_error" in
+            *NOT_FOUND*|*"not found"*) cluster_available=false ;;
+            *) echo "$cluster_error" >&2; exit 1 ;;
+          esac
+        fi
+        if [[ "$cluster_available" == true ]]; then
+          gcloud container clusters get-credentials "$cluster" --zone "$TF_VAR_zone" --project "$GCP_PROJECT_ID" --quiet >/dev/null
+        fi
         ;;
     esac
+
+    if [[ "$cluster_available" == true ]] && helm status fleet-manager --namespace "$namespace" >/dev/null 2>&1; then
+      manager_id=$(helm get values fleet-manager --namespace "$namespace" --all --output json | jq -er '.manager.id')
+      helm uninstall fleet-manager --namespace "$namespace" --wait
+      case "$cloud" in
+        aws)
+          profile=$(/tmp/terraform output -raw runner_instance_profile_name)
+          profile_arn=$(aws iam get-instance-profile --instance-profile-name "$profile" --query 'InstanceProfile.Arn' --output text)
+          ids=$(aws ec2 describe-instances --filters "Name=tag:superplane_fleet_manager_id,Values=$manager_id" "Name=iam-instance-profile.arn,Values=$profile_arn" 'Name=instance-state-name,Values=pending,running,stopping,stopped' --query 'Reservations[].Instances[].InstanceId' --output text)
+          if [[ -n "$ids" ]]; then
+            read -r -a instance_ids <<< "$ids"
+            aws ec2 terminate-instances --instance-ids "${instance_ids[@]}" >/dev/null
+            aws ec2 wait instance-terminated --instance-ids "${instance_ids[@]}"
+          fi
+          ;;
+        gcp)
+          instances=$(gcloud compute instances list --project "$GCP_PROJECT_ID" --filter="labels.superplane_fleet_manager_id=$manager_id" --format='value(name,zone.basename())')
+          while read -r name zone; do
+            [[ -n "$name" ]] || continue
+            gcloud compute instances delete "$name" --zone="$zone" --project "$GCP_PROJECT_ID" --quiet
+          done <<< "$instances"
+          ;;
+      esac
+    fi
   fi
 fi
 
