@@ -56,8 +56,6 @@ setup_cloud() {
       export TF_VAR_gke_deletion_protection=false
       export TF_VAR_sql_deletion_protection=false
       export TF_VAR_blob_bucket_force_destroy=true
-      export TF_VAR_enable_gcs_blob_storage=true
-      export TF_VAR_enable_runners=true
       ;;
   esac
 }

@@ -3,7 +3,6 @@
 # -----------------------------------------------------------------------------
 
 resource "aws_security_group" "runners" {
-  count       = var.enable_runners ? 1 : 0
   name        = "${var.cluster_name}-runners"
   description = "Outbound-only security group for SuperPlane runner VMs"
   vpc_id      = aws_vpc.superplane.id
@@ -23,14 +22,13 @@ resource "aws_security_group" "runners" {
   lifecycle {
     precondition {
       condition     = trimspace(var.runner_image_amd64) != ""
-      error_message = "Runners need runner_image_amd64. Build the AMI with release/runner/packer/aws/runner.pkr.hcl and set runner_image_amd64 = \"ami-...\". Set enable_runners = false to install without runners."
+      error_message = "Set runner_image_amd64 to a Packer-built AMI ID (ami-...)."
     }
   }
 }
 
 resource "aws_iam_role" "runner" {
-  count = var.enable_runners ? 1 : 0
-  name  = "${var.cluster_name}-runner"
+  name = "${var.cluster_name}-runner"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -45,14 +43,12 @@ resource "aws_iam_role" "runner" {
 }
 
 resource "aws_iam_instance_profile" "runner" {
-  count = var.enable_runners ? 1 : 0
-  name  = "${var.cluster_name}-runner"
-  role  = aws_iam_role.runner[0].name
+  name = "${var.cluster_name}-runner"
+  role = aws_iam_role.runner.name
 }
 
 resource "aws_iam_role" "fleet_manager" {
-  count = var.enable_runners ? 1 : 0
-  name  = "${var.cluster_name}-fleet-manager"
+  name = "${var.cluster_name}-fleet-manager"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -73,9 +69,8 @@ resource "aws_iam_role" "fleet_manager" {
 }
 
 resource "aws_iam_role_policy" "fleet_manager" {
-  count = var.enable_runners ? 1 : 0
-  name  = "${var.cluster_name}-fleet-manager"
-  role  = aws_iam_role.fleet_manager[0].id
+  name = "${var.cluster_name}-fleet-manager"
+  role = aws_iam_role.fleet_manager.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -94,7 +89,7 @@ resource "aws_iam_role_policy" "fleet_manager" {
           [
             "arn:aws:ec2:${var.region}::image/*",
             "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:key-pair/*",
-            aws_security_group.runners[0].arn
+            aws_security_group.runners.arn
           ],
           aws_subnet.private[*].arn
         )
@@ -120,7 +115,7 @@ resource "aws_iam_role_policy" "fleet_manager" {
             "aws:RequestTag/Name" = "superplane-runner"
           }
           ArnEquals = {
-            "ec2:InstanceProfile" = aws_iam_instance_profile.runner[0].arn
+            "ec2:InstanceProfile" = aws_iam_instance_profile.runner.arn
           }
         }
       },
@@ -160,7 +155,7 @@ resource "aws_iam_role_policy" "fleet_manager" {
             "ec2:ResourceTag/Name" = "superplane-runner"
           }
           ArnEquals = {
-            "ec2:InstanceProfile" = aws_iam_instance_profile.runner[0].arn
+            "ec2:InstanceProfile" = aws_iam_instance_profile.runner.arn
           }
         }
       },
@@ -168,7 +163,7 @@ resource "aws_iam_role_policy" "fleet_manager" {
         Sid      = "PassRunnerRoleOnly"
         Effect   = "Allow"
         Action   = ["iam:PassRole"]
-        Resource = aws_iam_role.runner[0].arn
+        Resource = aws_iam_role.runner.arn
         Condition = {
           StringEquals = {
             "iam:PassedToService" = "ec2.amazonaws.com"
@@ -177,4 +172,29 @@ resource "aws_iam_role_policy" "fleet_manager" {
       }
     ]
   })
+}
+
+moved {
+  from = aws_security_group.runners[0]
+  to   = aws_security_group.runners
+}
+
+moved {
+  from = aws_iam_role.runner[0]
+  to   = aws_iam_role.runner
+}
+
+moved {
+  from = aws_iam_instance_profile.runner[0]
+  to   = aws_iam_instance_profile.runner
+}
+
+moved {
+  from = aws_iam_role.fleet_manager[0]
+  to   = aws_iam_role.fleet_manager
+}
+
+moved {
+  from = aws_iam_role_policy.fleet_manager[0]
+  to   = aws_iam_role_policy.fleet_manager
 }
