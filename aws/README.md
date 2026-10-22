@@ -77,8 +77,7 @@ letsencrypt_email  = "you@yourdomain.com"
 runner_image_amd64 = "ami-0123456789abcdef0"
 ```
 
-Terraform stops the plan when `runner_image_amd64` is empty. To install without
-runners, set `enable_runners = false` and skip the AMI build.
+Terraform stops the plan when `runner_image_amd64` is empty.
 
 You must control the domain so you can add its DNS record after deployment.
 If you are deploying outside `us-east-1`, also set `region` and two availability zones in that region:
