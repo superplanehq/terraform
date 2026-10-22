@@ -12,7 +12,7 @@ Install these tools:
 
 - Terraform 1.5.0 or later
 - Azure CLI
-- Helm 3
+- Helm 3 or 4
 - kubectl
 - Docker (optional, to check the published images)
 
@@ -83,13 +83,14 @@ The defaults pin these releases:
 | --- | --- |
 | SuperPlane chart | `1.0.0-rc3` |
 | App image | `ghcr.io/superplanehq/superplane:v1.0.0-rc3` |
-| Fleet Manager chart | `oci://ghcr.io/superplanehq/fleet-manager-chart` version `0.1.3` |
-| Fleet Manager image | `ghcr.io/superplanehq/fleet-manager:v0.1.3` |
+| Fleet Manager chart | `oci://ghcr.io/superplanehq/fleet-manager-chart` version `0.1.3` or later |
+| Fleet Manager image | `ghcr.io/superplanehq/fleet-manager:v0.1.3` or later |
 | Recommended runner | `v0.2.0` |
 | linux/amd64 runner image | `/CommunityGalleries/Superplane-ba852f02-dd01-43eb-b8c4-67a57fdd8af8/Images/superplane-runner-amd64/Versions/1.14623.0` |
 | linux/arm64 runner image | `/CommunityGalleries/Superplane-ba852f02-dd01-43eb-b8c4-67a57fdd8af8/Images/superplane-runner-arm64/Versions/1.14623.0` |
 
-The owner-setup wizard installs Fleet Manager chart `0.1.3` and image `v0.1.3`.
+The owner-setup wizard installs the latest published Fleet Manager release.
+On 22 October 2026 that release was chart `0.1.4` and image `v0.1.4`.
 Use Fleet Manager `v0.1.3` or later with this SuperPlane chart.
 The Fleet Manager binary syncs fleets.
 
@@ -98,12 +99,13 @@ Confirm the charts before you apply:
 ```bash
 helm show chart oci://ghcr.io/superplanehq/superplane-chart --version 1.0.0-rc3
 docker manifest inspect ghcr.io/superplanehq/superplane:v1.0.0-rc3
-helm show chart oci://ghcr.io/superplanehq/fleet-manager-chart --version 0.1.3
-docker manifest inspect ghcr.io/superplanehq/fleet-manager:v0.1.3
+helm show chart oci://ghcr.io/superplanehq/fleet-manager-chart --version 0.1.4
+docker manifest inspect ghcr.io/superplanehq/fleet-manager:v0.1.4
 ```
 
 `helm show chart` for SuperPlane must print `appVersion: v1.0.0-rc3`.
-`helm show chart` for Fleet Manager must print `appVersion: v0.1.3`.
+`helm show chart` for Fleet Manager must print `appVersion: v0.1.4`.
+Use the version that the wizard shows when it is newer.
 Leave `superplane_image_tag` empty. The SuperPlane chart uses that appVersion.
 
 ## 3. Configure Terraform
@@ -300,7 +302,8 @@ Terraform variables.
 ## Runners
 
 Terraform sets `fleet_manager_version` to `v0.1.3`.
-The owner-setup wizard writes that chart version and that image tag.
+The owner-setup wizard writes the latest published chart version and image tag
+when that release is newer. On 22 October 2026 the wizard wrote `0.1.4`.
 Use Fleet Manager `v0.1.3` or later with this SuperPlane chart.
 
 The default install uses these public images:
@@ -355,6 +358,8 @@ Terraform passes the runner network, location, identity, images, and cluster val
 The wizard preloads these values.
 Run `terraform apply`.
 Run the Helm commands that the wizard shows.
+Save the values file as `fleet-manager-values.yaml`. It contains a personal
+token. Git ignores that file name. Do not commit it.
 
 This stack still creates an empty customer Compute Gallery and two image
 definitions. You can ignore them when the image ID points at the

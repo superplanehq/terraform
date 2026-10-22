@@ -7,3 +7,6 @@
 tfplan
 crash.log
 crash.*.log
+
+# Fleet Manager values from the owner-setup wizard (contains a token)
+fleet-manager-values.yaml
