@@ -22,6 +22,24 @@ setup_cloud() {
       export TF_VAR_rds_deletion_protection=false
       export TF_VAR_rds_skip_final_snapshot=true
       export TF_VAR_blob_bucket_force_destroy=true
+      # Use the newest public runner AMI for each architecture in this region.
+      for architecture in x86_64 arm64; do
+        image_id=$(aws ec2 describe-images \
+          --region "$TF_VAR_region" \
+          --owners 802589444644 \
+          --filters 'Name=name,Values=superplane-runner-*' 'Name=is-public,Values=true' 'Name=state,Values=available' "Name=architecture,Values=$architecture" \
+          --query 'sort_by(Images,&CreationDate)[-1].ImageId' \
+          --output text)
+        if [[ ! "$image_id" =~ ^ami-[0-9a-f]+$ ]]; then
+          echo "No public SuperPlane runner AMI for $architecture in $TF_VAR_region" >&2
+          exit 1
+        fi
+        case "$architecture" in
+          x86_64) export TF_VAR_runner_image_amd64="$image_id" ;;
+          arm64) export TF_VAR_runner_image_arm64="$image_id" ;;
+        esac
+      done
+      echo "Runner AMIs: amd64=$TF_VAR_runner_image_amd64 arm64=$TF_VAR_runner_image_arm64"
       ;;
     gcp)
       : "${GCP_PROJECT_ID:?Set GCP_PROJECT_ID}"
