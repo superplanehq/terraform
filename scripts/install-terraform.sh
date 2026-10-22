@@ -68,3 +68,22 @@ fi
 
 /tmp/terraform init -input=false -no-color
 /tmp/terraform apply -auto-approve -input=false -no-color
+save_state
+trap - EXIT
+
+echo
+echo "Terraform state: Semaphore project artifact $state_artifact"
+case "$cloud" in
+  aws)
+    echo "Cluster: $(/tmp/terraform output -raw cluster_name)"
+    echo "Region: $TF_VAR_region"
+    echo "Domain: $AWS_DOMAIN_NAME"
+    ;;
+  gcp)
+    echo "Cluster: $(/tmp/terraform output -raw cluster_name)"
+    echo "Project: $GCP_PROJECT_ID"
+    echo "Zone: $TF_VAR_zone"
+    echo "App URL: $(/tmp/terraform output -raw superplane_url)"
+    ;;
+esac
+echo "Next steps: https://github.com/superplanehq/terraform/blob/main/docs/ephemeral-environments.md#$cloud"
