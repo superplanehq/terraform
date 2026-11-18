@@ -57,13 +57,6 @@ resource "helm_release" "nginx_ingress" {
 
 locals {
   fleet_manager_setup_values = yamlencode({
-    # The published chart still defaults both components to v0.1.0.
-    # Runner and Fleet Manager publish on separate release lines.
-    componentReleases = {
-      runnerVersion       = "v0.2.0"
-      runnerVersions      = ["v0.2.0"]
-      fleetManagerVersion = "v0.1.3"
-    }
     fleetManagerSetup = {
       enabled            = true
       provider           = "azure"
@@ -111,9 +104,14 @@ resource "helm_release" "superplane" {
 
   values = [local.fleet_manager_setup_values]
 
-  set {
-    name  = "componentReleases.fleetManagerVersion"
-    value = var.fleet_manager_version
+  # The chart pins the Fleet Manager and Runner releases it supports.
+  # Override Fleet Manager only when fleet_manager_version is set.
+  dynamic "set" {
+    for_each = var.fleet_manager_version == "" ? [] : [var.fleet_manager_version]
+    content {
+      name  = "componentReleases.fleetManagerVersion"
+      value = set.value
+    }
   }
 
   set {

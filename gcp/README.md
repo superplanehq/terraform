@@ -171,7 +171,7 @@ runner_image_amd64 = "projects/PROJECT/global/images/IMAGE_NAME"
 
 # Confirm the release exists before you apply.
 superplane_image_tag     = ""
-superplane_chart_version = "1.0.0-rc3"
+superplane_chart_version = "1.0.0"
 ```
 
 Terraform stops the plan when `runner_image_amd64` is empty.
@@ -185,7 +185,7 @@ Select a published stable or release-candidate version. Confirm the image and
 chart before you apply:
 
 ```bash
-export SUPERPLANE_VERSION=v1.0.0-rc3
+export SUPERPLANE_VERSION=v1.0.0
 
 docker manifest inspect ghcr.io/superplanehq/superplane:${SUPERPLANE_VERSION}
 helm show chart oci://ghcr.io/superplanehq/superplane-chart --version "${SUPERPLANE_VERSION#v}"
@@ -326,7 +326,7 @@ must stop and Fleet Manager must delete it after the task.
 | `blob_bucket_name` | `<project_id>-superplane-blobs` | Name of the blob bucket. |
 | `blob_bucket_force_destroy` | `false` | Delete the bucket objects on destroy. |
 | `superplane_chart_path` | empty | Path to a local chart. Empty installs the published chart. |
-| `superplane_chart_version` | `1.0.0-rc3` | Published chart version. Use a stable `1.x` chart when one exists. Do not use chart `0.30.0` or any lower chart. |
+| `superplane_chart_version` | `1.0.0` | Published chart version. Use a stable `1.x` chart when one exists. Do not use chart `0.30.0` or any lower chart. |
 | `network_name` | `superplane` | Name of the VPC created for this installation. |
 | `gke_subnet_cidr` | `10.20.0.0/20` | Range for GKE nodes. |
 | `gke_pods_cidr` | `10.24.0.0/16` | Range for GKE Pods. |
