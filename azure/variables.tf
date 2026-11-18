@@ -168,17 +168,17 @@ variable "helm_chart_path" {
 variable "superplane_chart_version" {
   description = "Published SuperPlane Helm chart version with a matching versioned image. Ignored when helm_chart_path is set."
   type        = string
-  default     = "1.0.0-rc3"
+  default     = "1.0.0"
 }
 
 variable "fleet_manager_version" {
-  description = "Fleet Manager release the owner-setup wizard installs. Use v0.1.3 or later with this chart. The Fleet Manager binary syncs fleets."
+  description = "Fleet Manager release override for componentReleases. Empty uses the release the SuperPlane chart pins, which is the supported one."
   type        = string
-  default     = "v0.1.3"
+  default     = ""
 
   validation {
-    condition     = can(regex("^v\\d+\\.\\d+\\.\\d+$", var.fleet_manager_version))
-    error_message = "Set fleet_manager_version to vMAJOR.MINOR.PATCH, for example v0.1.3."
+    condition     = var.fleet_manager_version == "" || can(regex("^v\\d+\\.\\d+\\.\\d+$", var.fleet_manager_version))
+    error_message = "Set fleet_manager_version to vMAJOR.MINOR.PATCH, for example v0.1.6, or leave it empty."
   }
 }
 

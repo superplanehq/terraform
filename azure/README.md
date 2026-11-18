@@ -81,31 +81,30 @@ The defaults pin these releases:
 
 | Artifact | Value |
 | --- | --- |
-| SuperPlane chart | `1.0.0-rc3` |
-| App image | `ghcr.io/superplanehq/superplane:v1.0.0-rc3` |
-| Fleet Manager chart | `oci://ghcr.io/superplanehq/fleet-manager-chart` version `0.1.3` or later |
-| Fleet Manager image | `ghcr.io/superplanehq/fleet-manager:v0.1.3` or later |
-| Recommended runner | `v0.2.0` |
+| SuperPlane chart | `1.0.0` |
+| App image | `ghcr.io/superplanehq/superplane:v1.0.0` |
+| Fleet Manager chart | `oci://ghcr.io/superplanehq/fleet-manager-chart` version `0.1.6` |
+| Fleet Manager image | `ghcr.io/superplanehq/fleet-manager:v0.1.6` |
+| Runner | `v0.2.1` |
 | linux/amd64 runner image | `/CommunityGalleries/Superplane-ba852f02-dd01-43eb-b8c4-67a57fdd8af8/Images/superplane-runner-amd64/Versions/1.14623.0` |
 | linux/arm64 runner image | `/CommunityGalleries/Superplane-ba852f02-dd01-43eb-b8c4-67a57fdd8af8/Images/superplane-runner-arm64/Versions/1.14623.0` |
 
-The owner-setup wizard installs the latest published Fleet Manager release.
-On 22 October 2026 that release was chart `0.1.4` and image `v0.1.4`.
-Use Fleet Manager `v0.1.3` or later with this SuperPlane chart.
-The Fleet Manager binary syncs fleets.
+The SuperPlane chart pins the Fleet Manager and Runner releases it supports
+in `componentReleases`. Terraform does not override them.
+The owner-setup wizard can write a newer Fleet Manager release.
+Use the release the chart pins. Fleet Manager `v0.1.7` cannot create runners
+on SuperPlane `1.0.0`: the log shows `unknown field "fleetManagerId"`.
 
 Confirm the charts before you apply:
 
 ```bash
-helm show chart oci://ghcr.io/superplanehq/superplane-chart --version 1.0.0-rc3
-docker manifest inspect ghcr.io/superplanehq/superplane:v1.0.0-rc3
-helm show chart oci://ghcr.io/superplanehq/fleet-manager-chart --version 0.1.4
-docker manifest inspect ghcr.io/superplanehq/fleet-manager:v0.1.4
+helm show chart oci://ghcr.io/superplanehq/superplane-chart --version 1.0.0
+helm show values oci://ghcr.io/superplanehq/superplane-chart --version 1.0.0 | grep -A4 '^componentReleases'
+docker manifest inspect ghcr.io/superplanehq/superplane:v1.0.0
 ```
 
-`helm show chart` for SuperPlane must print `appVersion: v1.0.0-rc3`.
-`helm show chart` for Fleet Manager must print `appVersion: v0.1.4`.
-Use the version that the wizard shows when it is newer.
+`helm show chart` for SuperPlane must print `appVersion: v1.0.0`.
+`componentReleases` names the Fleet Manager and Runner releases to install.
 Leave `superplane_image_tag` empty. The SuperPlane chart uses that appVersion.
 
 ## 3. Configure Terraform
@@ -190,7 +189,7 @@ Access SuperPlane at `https://YOUR_DOMAIN`.
 
 ## Update SuperPlane
 
-The default chart is `1.0.0-rc3`. Set `superplane_chart_version` to a
+The default chart is `1.0.0`. Set `superplane_chart_version` to a
 newer published chart when you upgrade. Use a stable `1.x` chart when one
 exists. Do not use chart `0.30.0` or any lower chart. Confirm the matching
 image and chart first.
@@ -301,10 +300,11 @@ Terraform variables.
 
 ## Runners
 
-Terraform sets `fleet_manager_version` to `v0.1.3`.
-The owner-setup wizard writes the latest published chart version and image tag
-when that release is newer. On 22 October 2026 the wizard wrote `0.1.4`.
-Use Fleet Manager `v0.1.3` or later with this SuperPlane chart.
+The SuperPlane chart pins the Fleet Manager and Runner releases.
+Leave `fleet_manager_version` empty to use them.
+The owner-setup wizard can write a newer Fleet Manager chart and image.
+Set `image.tag`, every `runnerVersion`, and the Helm `--version` to the
+releases in `componentReleases` before you run Helm.
 
 The default install uses these public images:
 
@@ -316,7 +316,7 @@ The default install uses these public images:
 The Azure image version has the form `1.<build>.0`.
 That number is not the runner version.
 The runner downloads at boot from GitHub Releases.
-The recommended runner release is `v0.2.0`.
+The SuperPlane chart pins the runner release in `componentReleases`.
 Set `runner_image_amd64` or `runner_image_arm64` when you need another image.
 
 Terraform creates the runner subnet, network security group, and identities.

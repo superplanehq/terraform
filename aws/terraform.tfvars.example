@@ -20,7 +20,7 @@ runner_image_amd64 = ""
 # Terraform downloads the chart from
 # oci://ghcr.io/superplanehq/superplane-chart. The chart uses the application
 # image at ghcr.io/superplanehq/superplane.
-# superplane_chart_version = "1.0.0-rc3"
+# superplane_chart_version = "1.0.0"
 # superplane_image_tag    = ""  # Empty uses the chart's matching image.
 # superplane_namespace = "superplane"
 
